@@ -52,7 +52,6 @@ void graph::addNode(const string &name) {
 }
 
 void graph::addEdge(const string& from, const string& to, double cost) {
-    //TODO Consider detecting/avoiding duplicate directed edges.
     node *f=(work.find(from)->second);
     node *t=(work.find(to)->second);
     
@@ -79,6 +78,8 @@ void graph::addEdge(const string& from, const string& to, double cost) {
 }
 
 double graph::findShortestPath(const string& from, const string& to) {
+    //Returns sum of the cost of all edges between from and to.
+    //In the hackerrank problem, however, the cost of all edges was 6.
     //https://en.wikipedia.org/wiki/Breadth-first_search 
     
     node *destination = (work.find(to)->second);
@@ -158,15 +159,16 @@ graph::~graph() {
         }
     }
     //delete map (not sure if I need to do this either, since the map (work) is an STL container.  But, it wont hurt anything.
-        //auto itb = work.cbegin();
-        //auto ite = work.cend();
     nmap::iterator itb=work.begin();
     nmap::iterator ite=work.begin();
     work.erase(itb,ite);
     //delete pairs?
     /*
-        STL containers generally store their elements on the free store and perform their own memory management. Does anyone know,         however, if one creates STL pair<T, T> objects that are not inserted into a container, whether or not those objects will           automatically be removed from the free store? In other words, if I create a pair using pair() or make_pair(), do I need to         call delete?
         From: http://www.cplusplus.com/forum/general/36777/
+        "STL containers generally store their elements on the free store and perform their own memory management. 
+        Does anyone know, however, if one creates STL pair<T, T> objects that are not inserted into a container, 
+        whether or not those objects will automatically be removed from the free store? In other words, if I create a 
+        pair using pair() or make_pair(), do I need to call delete? ... Answer: No."
     */
 }
 
@@ -185,6 +187,7 @@ string IntToString ( int Number ) {
 
 int main() {
     /* Enter your code here. Read input from STDIN. Print output to STDOUT */ 
+    //Hackerrank test harness
     int T, N, M;
     cin >> T; //Get number of test cases
     for (int testcase=1; testcase<=T; testcase++) {
@@ -204,7 +207,7 @@ int main() {
         for (int m=1; m<=M; m++) {
             string from, to;
             cin >> from >> to;
-            G.addEdge(from,to,6);
+            G.addEdge(from,to,6); //cost of all edges in hackerrank problem was 6
         }
         
         //Get starting node
