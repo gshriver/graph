@@ -28,6 +28,7 @@ class graph {
     void addNode(const string&);
     void addEdge(const string& from, const string& to, double cost);
     double findShortestPath(const string& from, const string& to);
+    double breadthFirstSearch(const string& from, const string& to);
     void deleteNode(node*); 
     virtual ~graph();
     string gIntToString(const int n);
@@ -61,7 +62,7 @@ void graph::addEdge(const string& from, const string& to, double cost) {
     duplicate edges may be acceptable or even desirable.  This is specifically for the hackerrank problem.
     */
     for (auto it = f->adj.begin() ; it != f->adj.end(); ++it) {
-        if (it->second == t) {
+        if ((it->second == t)&&(it->first == cost)) {
             //duplicate edge, discard this edge
             cerr << "Discarding duplicate edge between nodes " << from << " and " << to << endl;
             return;
@@ -75,6 +76,61 @@ void graph::addEdge(const string& from, const string& to, double cost) {
     bkwdEdge = make_pair(cost,f);
     t->adj.push_back(bkwdEdge);
     return;
+}
+
+double graph::breadthFirstSearch(const string& from, const string& to) {
+    //Returns sum of the cost of all edges between from and to.
+    //In the hackerrank problem, however, the cost of all edges was 6.
+    //https://en.wikipedia.org/wiki/Breadth-first_search 
+    
+    node *destination = (work.find(to)->second);
+    if (destination->adj.empty()) {
+        //Optimization #1: If destination node has no links, it is unreachable.  Avoid search.
+        cerr << "Node " << to << " has no links.  It is unreachable." << endl;
+        return -1.0;
+    }
+    
+    double cost;
+    
+    // Set distance of all nodes to infinity (-1)
+    for (int n=1; n<=numNodes; n++) {
+        string NodeName;
+        NodeName = gIntToString(n);
+        node *np = (work.find(NodeName)->second);
+        if (np) {
+            np->totCost=-1.0;   //distance between this node and the 'from' node is not yet determined
+            np->parent=NULL;    //predecessor of this node has not yet been determined 
+        }
+    }
+    
+    node *source = (work.find(from)->second);
+    source->totCost = 0.0; //distance of from node to itself is 0.
+    
+    std::queue<node*> Q;
+    Q.push(source);    //Add source to queue, as we will explore this node first
+    
+    bool found = false;
+    while (!Q.empty() && !found) {
+        node *currNode = Q.front();
+        Q.pop();
+        if (currNode == destination) {
+            cost = currNode->totCost;
+            found = true;
+        } else {
+            for (auto it = currNode->adj.begin() ; it != currNode->adj.end(); ++it) {
+                //For each node n that is adjacent to currNode:
+                node *n = it->second;
+                if (n->totCost == -1.0) {   //if node not previously visited
+                    n->totCost = currNode->totCost + it->first;
+                    n->parent = currNode;
+                    Q.push(n);
+                } //end if node not previously visited
+            } //end for each adjacent node
+        } //end if we have reached our destination  
+    } //end while queue Q not empty
+    
+    if (!found) cost = -1.0;
+    return cost;
 }
 
 double graph::findShortestPath(const string& from, const string& to) {
@@ -131,6 +187,7 @@ double graph::findShortestPath(const string& from, const string& to) {
     if (!found) cost = -1.0;
     return cost;
 }
+
 
 void graph::deleteNode(node* delnode) {
     //delete all edges in adjacency list
