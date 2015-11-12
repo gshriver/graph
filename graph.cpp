@@ -19,6 +19,8 @@ struct node{
     }
     double totCost;     //Used by BFS alforithm
     node* parent;       //Used by BFS algorithm
+    bool current, visited;  //Used by shortest path method
+    
 };
 
 class graph {
@@ -134,9 +136,8 @@ double graph::breadthFirstSearch(const string& from, const string& to) {
 }
 
 double graph::findShortestPath(const string& from, const string& to) {
-    //Returns sum of the cost of all edges between from and to.
-    //In the hackerrank problem, however, the cost of all edges was 6.
-    //https://en.wikipedia.org/wiki/Breadth-first_search 
+    //Returns sum of the cost of all edges for the shortest path between from and to nodes.
+    //https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm 
     
     node *destination = (work.find(to)->second);
     if (destination->adj.empty()) {
@@ -155,11 +156,14 @@ double graph::findShortestPath(const string& from, const string& to) {
         if (np) {
             np->totCost=-1.0;   //distance between this node and the 'from' node is not yet determined
             np->parent=NULL;    //predecessor of this node has not yet been determined 
+            np->visited=false;  //mark as not visitied, or in the set of unvisited nodes
+            np->current=false;
         }
     }
     
     node *source = (work.find(from)->second);
     source->totCost = 0.0; //distance of from node to itself is 0.
+    source->current = true; //set source node as current
     
     std::queue<node*> Q;
     Q.push(source);    //Add source to queue, as we will explore this node first
