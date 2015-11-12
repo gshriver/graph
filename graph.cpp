@@ -30,8 +30,11 @@ class graph {
     void addNode(const string&);
     void addEdge(const string& from, const string& to, double cost);
     double findShortestPath(const string& from, const string& to);
+    void findShortestPaths(const string& from);
     double breadthFirstSearch(const string& from, const string& to);
+    void breadthFirstSearchAll(const string& from);
     void deleteNode(node*); 
+    node* findNode(const string& name);
     virtual ~graph();
     string gIntToString(const int n);
     
@@ -52,6 +55,16 @@ void graph::addNode(const string &name) {
     }
     cerr<<"Node "<<name<<" already exists!"<< endl;
     return;
+}
+
+node* graph::findNode(const string &name) {
+    nmap::iterator itr=work.begin();
+    itr=work.find(name);
+    if(itr==work.end())
+    {
+        return NULL;        
+    }
+    return itr->second;
 }
 
 void graph::addEdge(const string& from, const string& to, double cost) {
@@ -135,6 +148,48 @@ double graph::breadthFirstSearch(const string& from, const string& to) {
     return cost;
 }
 
+void graph::breadthFirstSearchAll(const string& from) {
+    //Calculates the distance(cost) to all nodes in the graph starting with the node from.
+    //Distance from from stored in each node
+    //https://en.wikipedia.org/wiki/Breadth-first_search 
+    
+    // Set distance of all nodes to infinity (-1)
+    for (int n=1; n<=numNodes; n++) {
+        string NodeName;
+        NodeName = gIntToString(n);
+        node *np = (work.find(NodeName)->second);
+        if (np) {
+            np->totCost=-1.0;   //distance between this node and the 'from' node is not yet determined
+            np->parent=NULL;    //predecessor of this node has not yet been determined 
+        }
+    }
+    
+    node *source = (work.find(from)->second);
+    source->totCost = 0.0; //distance of from node to itself is 0.
+    
+    std::queue<node*> Q;
+    Q.push(source);    //Add source to queue, as we will explore this node first
+    
+    while (!Q.empty()) {
+        node *currNode = Q.front();
+        Q.pop();
+
+        for (auto it = currNode->adj.begin() ; it != currNode->adj.end(); ++it) {
+            //For each node n that is adjacent to currNode:
+            node *n = it->second;
+            if (n->totCost == -1.0) {   //if node not previously visited
+                n->totCost = currNode->totCost + it->first;
+                n->parent = currNode;
+                Q.push(n);
+            } //end if node not previously visited
+        } //end for each adjacent node
+  
+    } //end while queue Q not empty
+
+    return;
+    
+}
+
 double graph::findShortestPath(const string& from, const string& to) {
     //Returns sum of the cost of all edges for the shortest path between from and to nodes.
     //https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm 
@@ -192,11 +247,54 @@ double graph::findShortestPath(const string& from, const string& to) {
     return cost;
 }
 
+void graph::findShortestPaths(const string& from) {
+    //Calculates the distance of all edges for the shortest path between from and to nodes.
+    //https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm 
+    
+    // Set distance of all nodes to infinity (-1)
+    for (int n=1; n<=numNodes; n++) {
+        string NodeName;
+        NodeName = gIntToString(n);
+        node *np = (work.find(NodeName)->second);
+        if (np) {
+            np->totCost=-1.0;   //distance between this node and the 'from' node is not yet determined
+            np->parent=NULL;    //predecessor of this node has not yet been determined 
+            np->visited=false;  //mark as not visitied, or in the set of unvisited nodes
+            np->current=false;
+        }
+    }
+    
+    node *source = (work.find(from)->second);
+    source->totCost = 0.0; //distance of from node to itself is 0.
+    source->current = true; //set source node as current
+    
+    std::queue<node*> Q;
+    Q.push(source);    //Add source to queue, as we will explore this node first
+    
+    while (!Q.empty()) {
+        node *currNode = Q.front();
+        Q.pop();
+
+        for (auto it = currNode->adj.begin() ; it != currNode->adj.end(); ++it) {
+            //For each node n that is adjacent to currNode:
+            node *n = it->second;
+            if (n->totCost == -1.0) {   //if node not previously visited
+                n->totCost = currNode->totCost + it->first;
+                n->parent = currNode;
+                Q.push(n);
+            } //end if node not previously visited
+        } //end for each adjacent node
+
+    } //end while queue Q not empty
+    
+    return;
+}
+
 
 void graph::deleteNode(node* delnode) {
     //delete all edges in adjacency list
     /*
-        Edges are stored in an adjacency list in each node implemented in a STL vector or pairs.  Therefore, we should not
+        Edges are stored in an adjacency list in each node implemented in a STL vector of pairs.  Therefore, we should not
         need to explicitly delete the edges as they will by cleaned up by the STL when we delete the owning node (below).
     */
     
@@ -246,9 +344,9 @@ string IntToString ( int Number ) {
     return ss.str();
 }
 
-int main() {
+void hackerRankbfsshortreach() {
     /* Enter your code here. Read input from STDIN. Print output to STDOUT */ 
-    //Hackerrank test harness
+    //Hackerrank test harness for https://www.hackerrank.com/challenges/bfsshortreach 
     int T, N, M;
     cin >> T; //Get number of test cases
     for (int testcase=1; testcase<=T; testcase++) {
@@ -276,15 +374,20 @@ int main() {
         string startName;
         cin >> S;
         startName = IntToString(S);
+
+        //Find distances to all nodes from startName
+	G.breadthFirstSearchAll(startName);
         
-        //Find shortest path from S to all other nodes, starting with first
+        //Print shortest path from S to all other nodes, starting with first
         for (int n=1; n<=N; n++) {
             double dCost;
             int cost;
             if (n!=S) {
                 string destination;
+                node* dest;
                 destination = IntToString(n);
-                dCost = G.findShortestPath(startName,destination);
+                dest = G.findNode(destination); //distance is stored in each node
+                dCost = dest->totCost;
                 cost = (int) dCost;
                 cout << cost << " ";
             }
@@ -292,5 +395,70 @@ int main() {
         cout << endl;
         
     } //end for all test cases
+    return;
+}
+
+void hackerRankdijkstrashortreach() {
+    /* Enter your code here. Read input from STDIN. Print output to STDOUT */ 
+    //Hackerrank test harness for https://www.hackerrank.com/challenges/dijkstrashortreach
+    int T, N, M;
+    cin >> T; //Get number of test cases
+    for (int testcase=1; testcase<=T; testcase++) {
+        cin >> N; //Get number of nodes
+        cin >> M; //Get number of edges
+        
+        graph G;  //Create a graph for this test case
+        
+        //Create all of the nodes
+        for (int n=1; n<=N; n++) {
+            string newNodeName;
+            newNodeName = IntToString(n);
+            G.addNode(newNodeName);
+        }
+        
+        //Add all of the edges
+        for (int m=1; m<=M; m++) {
+            string from, to;
+            int iCost;
+            cin >> from >> to >> iCost;
+            G.addEdge(from,to,(double) iCost); 
+        }
+        
+        //Get starting node
+        int S;
+        string startName;
+        cin >> S;
+        startName = IntToString(S);
+
+        //Find shortest distances to all nodes from startName
+	G.findShortestPaths(startName);
+        
+        //Print shortest path from S to all other nodes, starting with first
+        for (int n=1; n<=N; n++) {
+            double dCost;
+            int cost;
+            if (n!=S) {
+                string destination;
+                node* dest;
+                destination = IntToString(n);
+                dest = G.findNode(destination); //distance is stored in each node
+                dCost = dest->totCost;
+                cost = (int) dCost;
+                cout << cost << " ";
+            }
+        }
+        cout << endl;
+        
+    } //end for all test cases
+    return;
+}
+
+
+
+int main() {
+    /* Enter your code here. Read input from STDIN. Print output to STDOUT */ 
+    //Hackerrank test harness
+    //hackerRankbfsshortreach();
+    hackerRankdijkstrashortreach();
     return 0;
 }
