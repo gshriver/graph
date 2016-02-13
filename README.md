@@ -2,8 +2,8 @@
 simple graph class implementation in c++
 Author: Greg Shriver
 
-My reason for writing this was to build a somewhat reusable graph class for use in solving Hackerrank graph problems
-(where libraries such as boost are not present)
+My reason for writing this was to build a reusable c++ graph class that implements a generic graph data structure in c++ for use in solving Hackerrank graph problems. 
+
 Another reason was to practice creating objects, classes and methods in c++.
 If I were really trying to make a robust, STL-like graph implementation, I would templatize it and add iterators.
 But it seems silly to do so when libraries like the Boost Graph Library already exist.
